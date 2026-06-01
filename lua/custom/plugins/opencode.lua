@@ -38,6 +38,14 @@ return {
       require('opencode').ask('@this: ', { submit = true })
     end, { desc = 'OpenCode ask with context' })
 
+    vim.keymap.set({ 'n', 'x' }, '<leader>ab', function()
+      require('opencode').ask('@buffer: ')
+    end, { desc = 'OpenCode ask current buffer' })
+
+    vim.keymap.set({ 'n', 'x' }, '<leader>af', function()
+      require('opencode').ask('@quickfix: ')
+    end, { desc = 'OpenCode ask quickfix list' })
+
     vim.keymap.set({ 'n', 'x' }, '<leader>ax', function()
       require('opencode').select()
     end, { desc = 'OpenCode actions' })
