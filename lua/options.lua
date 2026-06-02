@@ -172,7 +172,8 @@ local function set_focus_highlights()
   local cursor_bg = color_to_hex(cursor_line.bg) or color_to_hex(color_column.bg) or normal_bg
   local accent_bg = color_to_hex(visual.bg) or cursor_bg
   local inactive_fg = blend(normal_fg, normal_bg, 0.68) or normal_fg
-  local inactive_bg = blend(normal_bg, '#000000', vim.o.background == 'dark' and 0.92 or 0.97) or normal_bg
+  local dim_target = vim.o.background == 'dark' and '#ffffff' or '#000000'
+  local inactive_bg = blend(normal_bg, dim_target, 0.90) or normal_bg
   local inactive_cursor_bg = blend(cursor_bg, normal_bg, 0.55) or cursor_bg
 
   pcall(vim.api.nvim_set_hl, 0, 'CursorColumn', { bg = color_to_hex(color_column.bg) or cursor_bg })
