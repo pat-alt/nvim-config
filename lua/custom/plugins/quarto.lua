@@ -29,7 +29,23 @@ return {
         runner.run_line()
         vim.cmd 'normal! j'
       end, { desc = 'run line', silent = true })
-      vim.keymap.set('v', '<C-c>r', runner.run_range, { desc = 'run visual range', silent = true })
+      vim.keymap.set('v', '<C-c>r', function()
+        local end_line = vim.fn.getpos("'>")[2]
+        runner.run_range()
+        vim.api.nvim_win_set_cursor(0, { math.min(end_line + 1, vim.fn.line '$'), 0 })
+      end, { desc = 'run visual range', silent = true })
+      vim.keymap.set('x', '<C-c><C-c>', function()
+        local start_line = vim.fn.getpos("'<")[2]
+        local end_line = vim.fn.getpos("'>")[2]
+        if start_line > end_line then
+          start_line, end_line = end_line, start_line
+        end
+
+        vim.fn['slime#send_range'](start_line, end_line)
+        vim.schedule(function()
+          vim.api.nvim_win_set_cursor(0, { math.min(end_line + 1, vim.fn.line '$'), 0 })
+        end)
+      end, { desc = 'send visual range', silent = true })
       -- vim.keymap.set('n', '<C-c>RA', function()
       --   runner.run_all(true)
       -- end, { desc = 'run all cells of all languages', silent = true })
@@ -53,6 +69,7 @@ return {
     dev = false,
     init = function()
       vim.g.slime_target = 'tmux'
+      vim.g.slime_bracketed_paste = 1
       -- vim.g.slime_default_config = {"socket_name" = "default", "target_pane" = "{last}"}
       vim.g.slime_default_config = {
         -- Lua doesn't have a string split function!
