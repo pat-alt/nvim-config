@@ -26,10 +26,30 @@ return {
       require('diffview').setup(opts)
 
       local function set_diffview_hl()
+        local function blend(color, alpha)
+          local normal = vim.api.nvim_get_hl(0, { name = 'Normal' })
+          local bg = normal.bg or 0
+          local fg = tonumber(color:sub(2), 16)
+          local r = math.floor(((fg / 0x10000) % 0x100) * alpha + ((bg / 0x10000) % 0x100) * (1 - alpha))
+          local g = math.floor(((fg / 0x100) % 0x100) * alpha + ((bg / 0x100) % 0x100) * (1 - alpha))
+          local b = math.floor((fg % 0x100) * alpha + (bg % 0x100) * (1 - alpha))
+
+          return string.format('#%02x%02x%02x', r, g, b)
+        end
+
+        local add_bg = blend('#22c55e', 0.25)
+        local change_bg = blend('#eab308', 0.25)
+
         vim.api.nvim_set_hl(0, 'DiffviewStatusAdded', { fg = '#22c55e', bold = true })
         vim.api.nvim_set_hl(0, 'DiffviewStatusUntracked', { fg = '#22c55e', bold = true })
         vim.api.nvim_set_hl(0, 'DiffviewFilePanelInsertions', { fg = '#22c55e', bold = true })
         vim.api.nvim_set_hl(0, 'DiffviewStatusModified', { fg = '#eab308', bold = true })
+        vim.api.nvim_set_hl(0, 'DiffviewDiffAdd', { bg = add_bg })
+        vim.api.nvim_set_hl(0, 'DiffviewDiffChange', { bg = change_bg })
+        vim.api.nvim_set_hl(0, 'DiffviewDiffText', { bg = change_bg })
+        vim.api.nvim_set_hl(0, 'DiffAdd', { bg = add_bg })
+        vim.api.nvim_set_hl(0, 'DiffChange', { bg = change_bg })
+        vim.api.nvim_set_hl(0, 'DiffText', { bg = change_bg })
       end
 
       set_diffview_hl()
