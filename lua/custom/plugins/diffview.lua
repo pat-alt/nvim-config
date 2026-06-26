@@ -22,6 +22,19 @@ return {
       { '<leader>gq', '<cmd>DiffviewClose<cr>', desc = '[Q]uit diffview' },
       { '<leader>gr', '<cmd>DiffviewRefresh<cr>', desc = '[R]efresh diffview' },
     },
+    config = function(_, opts)
+      require('diffview').setup(opts)
+
+      local function set_diffview_hl()
+        vim.api.nvim_set_hl(0, 'DiffviewStatusAdded', { fg = '#22c55e', bold = true })
+        vim.api.nvim_set_hl(0, 'DiffviewStatusUntracked', { fg = '#22c55e', bold = true })
+        vim.api.nvim_set_hl(0, 'DiffviewFilePanelInsertions', { fg = '#22c55e', bold = true })
+        vim.api.nvim_set_hl(0, 'DiffviewStatusModified', { fg = '#eab308', bold = true })
+      end
+
+      set_diffview_hl()
+      vim.api.nvim_create_autocmd('ColorScheme', { callback = set_diffview_hl })
+    end,
     opts = {
       enhanced_diff_hl = true,
       show_help_hints = true,
