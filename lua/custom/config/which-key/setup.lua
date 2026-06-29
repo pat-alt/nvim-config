@@ -26,6 +26,13 @@ wk.add({
     end,
     desc = '[d]ark theme',
   },
+  {
+    '<leader>tc',
+    function()
+      require('csvview').toggle()
+    end,
+    desc = '[C]sv table',
+  },
   -- Search
   { '<leader>st', ':TodoTelescope<cr>', desc = '[T]odo' },
   { '<leader>sp', ':Papis search<cr>', desc = '[P]apis' },

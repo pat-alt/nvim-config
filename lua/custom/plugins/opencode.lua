@@ -1,5 +1,5 @@
 return {
-  'NickvanDyke/opencode.nvim',
+  'nickjvandyke/opencode.nvim',
   version = '*',
   dependencies = {
     {
@@ -25,13 +25,25 @@ return {
     },
   },
   config = function()
+    ---@type opencode.Opts
     vim.g.opencode_opts = {}
 
-    -- Required for OpenCode's file reload integration.
     vim.o.autoread = true
 
+    local opencode_cmd = 'opencode --port'
+    local snacks_terminal_opts = {
+      win = {
+        position = 'right',
+        enter = false,
+        on_win = function(self)
+          self.opts.wo.winfixwidth = false
+          vim.wo[self.win].winfixwidth = false
+        end,
+      },
+    }
+
     vim.keymap.set({ 'n', 't' }, '<leader>ao', function()
-      require('opencode').toggle()
+      require('snacks.terminal').toggle(opencode_cmd, snacks_terminal_opts)
     end, { desc = 'OpenCode toggle' })
 
     vim.keymap.set({ 'n', 'x' }, '<leader>aO', function()
