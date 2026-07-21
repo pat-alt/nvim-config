@@ -82,7 +82,8 @@ return {
       },
       hooks = {
         diff_buf_read = function()
-          vim.opt_local.wrap = false
+          vim.opt_local.wrap = true
+          vim.opt_local.linebreak = true
           vim.opt_local.list = false
         end,
       },
