@@ -1,6 +1,6 @@
 return {
   'goolord/alpha-nvim',
-  dependencies = { 'nvim-tree/nvim-web-devicons' },
+  dependencies = { 'nvim-tree/nvim-web-devicons', 'carlos-algms/agentic.nvim' },
   config = function()
     local alpha = require 'alpha'
     local dashboard = require 'alpha.themes.dashboard'
@@ -9,7 +9,7 @@ return {
       dashboard.button('f', '󰈞  > Find file', ':Telescope find_files<CR>'),
       dashboard.button('r', '  > Recent', ':Telescope oldfiles<CR>'),
       dashboard.button('s', '  > Settings', ':e $MYVIMRC | :cd %:p:h<cr>'),
-      dashboard.button('o', '  > Toggle OpenCode', ':lua require("opencode").toggle()<CR>'),
+      dashboard.button('o', '  > Toggle Agentic', ':lua require("agentic").toggle()<CR>'),
       dashboard.button('q', '󰅚  > Quit NVIM', ':qa<CR>'),
     }
 
