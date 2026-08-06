@@ -4,7 +4,7 @@ return {
     provider = 'opencode-acp',
     acp_providers = {
       ['opencode-acp'] = {
-        args = { 'acp', '--pure' },
+        args = { 'acp' },
       },
     },
   },
@@ -55,6 +55,13 @@ return {
         require('agentic').new_session()
       end,
       desc = 'Agentic new session',
+    },
+    {
+      '<leader>ad',
+      function()
+        require('agentic.session_registry').destroy_session()
+      end,
+      desc = 'Agentic close current session',
     },
     {
       '<leader>aq',
