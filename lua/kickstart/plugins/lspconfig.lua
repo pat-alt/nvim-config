@@ -314,11 +314,17 @@ return {
       require('lspconfig').julials.setup {
         capabilities = capabilities,
         on_new_config = function(new_config, _)
+          -- Use juliaup's julia if available (julia is not on PATH by default)
+          local julia = vim.fn.expand '~/.juliaup/bin/julia'
+          if vim.fn.executable(julia) == 1 then
+            new_config.cmd[1] = julia
+          end
+
           local server_path = vim.fn.expand '~/.julia/environments/nvim-lspconfig'
           if not require('lspconfig.util').path.is_dir(server_path) then
             vim.notify('Julia LS: Creating environment at ' .. server_path, vim.log.levels.INFO)
             vim.fn.system {
-              'julia',
+              julia,
               '--startup-file=no',
               '--history-file=no',
               '--project=' .. server_path,
