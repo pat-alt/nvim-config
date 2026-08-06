@@ -14,6 +14,8 @@ return {
           comments = { italic = false }, -- Disable italics in comments
         },
       }
+      -- Actually activate the colorscheme here, after the plugin is loaded.
+      vim.cmd.colorscheme 'tokyonight-day'
     end,
   },
 }

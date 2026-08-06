@@ -121,7 +121,7 @@ local generated_focus_groups = {
 local function parse_winhighlight(value)
   local parsed = {}
   for item in string.gmatch(value or '', '[^,]+') do
-    local from, to = item:match('^([^:]+):([^:]+)$')
+    local from, to = item:match '^([^:]+):([^:]+)$'
     if from and to then
       parsed[from] = to
     end
@@ -241,6 +241,6 @@ vim.opt.scrolloff = 10
 vim.opt.confirm = true
 
 -- Clipboard yanking
-vim.opt.clipboard = "unnamedplus"
+vim.opt.clipboard = 'unnamedplus'
 
 -- vim: ts=2 sts=2 sw=2 et
