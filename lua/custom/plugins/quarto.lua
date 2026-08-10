@@ -60,33 +60,85 @@ return {
 
   {
     'jpalardy/vim-slime',
-    dev = false,
     init = function()
-      vim.g.slime_target = 'tmux'
       vim.g.slime_bracketed_paste = 1
-      -- vim.g.slime_default_config = {"socket_name" = "default", "target_pane" = "{last}"}
-      vim.g.slime_default_config = {
-        -- Lua doesn't have a string split function!
-        socket_name = vim.api.nvim_eval 'get(split($TMUX, ","), 0)',
-        target_pane = '{right}',
-      }
+
+      -- Auto-detect target based on which multiplexer nvim runs in.
+      -- $HERDR_PANE_ID is injected by herdr into every managed pane process;
+      -- $TMUX is set by tmux. The first match wins.
+      if vim.env.HERDR_PANE_ID and vim.env.HERDR_PANE_ID ~= '' then
+        vim.g.slime_target = 'herdr'
+        vim.g.slime_default_config = { target_pane = vim.env.HERDR_PANE_ID }
+      elseif vim.env.TMUX and vim.env.TMUX ~= '' then
+        vim.g.slime_target = 'tmux'
+        vim.g.slime_default_config = {
+          socket_name = vim.api.nvim_eval 'get(split($TMUX, ","), 0)',
+          target_pane = '{right}',
+        }
+      else
+        -- No multiplexer detected; use :SlimeSwitchTarget to pick one.
+        vim.g.slime_target = 'tmux'
+      end
     end,
     config = function()
-      vim.g.slime_input_pid = false
-      vim.g.slime_suggest_default = true
-      vim.g.slime_menu_config = false
-      vim.g.slime_neovim_ignore_unlisted = true
       vim.b.slime_cell_delimiter = '```'
-      local function mark_terminal()
-        local job_id = vim.b.terminal_job_id
-        vim.print('job_id: ' .. job_id)
+
+      --- Apply vim-slime globals for a given target.
+      --- Used by :SlimeSwitchTarget and the init-time auto-detection.
+      local function apply_target(target)
+        if target == 'herdr' then
+          vim.g.slime_target = 'herdr'
+          vim.g.slime_default_config = { target_pane = vim.env.HERDR_PANE_ID or '' }
+        elseif target == 'tmux' then
+          vim.g.slime_target = 'tmux'
+          vim.g.slime_default_config = {
+            socket_name = vim.api.nvim_eval 'get(split($TMUX, ","), 0)',
+            target_pane = '{right}',
+          }
+        else
+          return false
+        end
+        return true
       end
 
-      local function set_terminal()
-        vim.fn.call('slime#config', {})
-      end
-      vim.keymap.set('n', '<leader>cm', mark_terminal, { desc = '[m]ark terminal' })
-      vim.keymap.set('n', '<leader>cs', set_terminal, { desc = '[s]et terminal' })
+      vim.api.nvim_create_user_command('SlimeSwitchTarget', function(opts)
+        local target = opts.args
+        if not apply_target(target) then
+          vim.notify('Unknown slime target: ' .. target, vim.log.levels.ERROR)
+          return
+        end
+        -- Clear buffer-local config so vim-slime re-prompts on next send.
+        vim.b.slime_config = nil
+        vim.notify('Slime target: ' .. target, vim.log.levels.INFO)
+      end, {
+        nargs = 1,
+        complete = function() return { 'herdr', 'tmux' } end,
+      })
+
+      -- Re-configure the current target (pane id, socket, etc.).
+      -- Pre-fills with the current value; edit it and press Enter.
+      vim.keymap.set('n', '<leader>cs', '<cmd>SlimeConfig<cr>', { desc = '[s]et slime config' })
+
+      -- Reset the target pane from scratch: clears the remembered config
+      -- and re-prompts, so the old pane ID is not pre-filled.
+      vim.api.nvim_create_user_command('SlimeSetPane', function()
+        vim.b.slime_config = nil
+        vim.cmd 'SlimeConfig'
+      end, {})
+      vim.keymap.set('n', '<leader>cp', '<cmd>SlimeSetPane<cr>', { desc = 'set slime [p]ane' })
+
+      -- Toggle between herdr and tmux.
+      vim.keymap.set('n', '<leader>cS', function()
+        local current = vim.g.slime_target or 'tmux'
+        local other = current == 'herdr' and 'tmux' or 'herdr'
+        vim.cmd('SlimeSwitchTarget ' .. other)
+      end, { desc = '[S]witch slime target' })
+
+      -- Debug helper: print the current terminal job id (neovim terminals only).
+      vim.keymap.set('n', '<leader>cm', function()
+        local job_id = vim.b.terminal_job_id
+        vim.notify('job_id: ' .. tostring(job_id))
+      end, { desc = '[m]ark terminal' })
     end,
   },
 }
