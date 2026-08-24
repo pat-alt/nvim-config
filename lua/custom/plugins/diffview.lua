@@ -14,13 +14,13 @@ return {
       'nvim-tree/nvim-web-devicons',
     },
     keys = {
-      { '<leader>gd', '<cmd>DiffviewOpen<cr>', desc = '[D]iff working tree' },
-      { '<leader>gD', '<cmd>DiffviewOpen HEAD<cr>', desc = '[D]iff against HEAD' },
-      { '<leader>gf', '<cmd>DiffviewToggleFiles<cr>', desc = 'Toggle diffview [f]iles' },
+      { '<leader>gd', '<cmd>DiffviewOpen<cr>',          desc = '[D]iff working tree' },
+      { '<leader>gD', '<cmd>DiffviewOpen HEAD<cr>',     desc = '[D]iff against HEAD' },
+      { '<leader>gf', '<cmd>DiffviewToggleFiles<cr>',   desc = 'Toggle diffview [f]iles' },
       { '<leader>gh', '<cmd>DiffviewFileHistory %<cr>', desc = 'File [h]istory' },
-      { '<leader>gH', '<cmd>DiffviewFileHistory<cr>', desc = 'Repo [H]istory' },
-      { '<leader>gq', '<cmd>DiffviewClose<cr>', desc = '[Q]uit diffview' },
-      { '<leader>gr', '<cmd>DiffviewRefresh<cr>', desc = '[R]efresh diffview' },
+      { '<leader>gH', '<cmd>DiffviewFileHistory<cr>',   desc = 'Repo [H]istory' },
+      { '<leader>gq', '<cmd>DiffviewClose<cr>',         desc = '[Q]uit diffview' },
+      { '<leader>gr', '<cmd>DiffviewRefresh<cr>',       desc = '[R]efresh diffview' },
     },
     config = function(_, opts)
       require('diffview').setup(opts)
@@ -85,6 +85,15 @@ return {
           vim.opt_local.wrap = true
           vim.opt_local.linebreak = true
           vim.opt_local.list = false
+          vim.keymap.set('n', '<leader>a', function()
+            if not vim.bo.modifiable then
+              return
+            end
+            local cs = vim.bo.commentstring
+            local comment = cs == '' and '# REVIEW: ' or cs:format(' REVIEW: ')
+            vim.fn.append('.', comment)
+            vim.cmd('normal! jA')
+          end, { buffer = true, desc = 'Add REVIEW comment' })
         end,
       },
     },

@@ -34,7 +34,13 @@ wk.add({
     desc = '[C]sv table',
   },
   -- Search
-  { '<leader>st', ':TodoTelescope<cr>', desc = '[T]odo' },
+  { '<leader>st', group = '[T]odo' },
+  { '<leader>sta', ':TodoTelescope<cr>', desc = '[A]ll' },
+  { '<leader>stt', ':TodoTelescope keywords=TODO<cr>', desc = '[T]ODO' },
+  { '<leader>str', ':TodoTelescope keywords=REVIEW<cr>', desc = '[R]EVIEW' },
+  { '<leader>stf', ':TodoTelescope keywords=FIX<cr>', desc = '[F]IX' },
+  { '<leader>sth', ':TodoTelescope keywords=HACK<cr>', desc = '[H]ACK' },
+  { '<leader>stw', ':TodoTelescope keywords=WARN<cr>', desc = '[W]ARN' },
   { '<leader>sp', ':Papis search<cr>', desc = '[P]apis' },
   -- Search and Replace
   { '<leader>r', group = '[R]eplace' },
