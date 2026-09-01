@@ -95,6 +95,12 @@ return {
             vim.cmd('normal! jA')
           end, { buffer = true, desc = 'Add REVIEW comment' })
         end,
+        diff_buf_win_enter = function(_, winid)
+          local ok, hl = pcall(require, 'todo-comments.highlight')
+          if ok then
+            pcall(hl.attach, winid, true)
+          end
+        end,
       },
     },
   },

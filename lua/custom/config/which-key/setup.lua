@@ -41,6 +41,8 @@ wk.add({
   { '<leader>stf', ':TodoTelescope keywords=FIX<cr>', desc = '[F]IX' },
   { '<leader>sth', ':TodoTelescope keywords=HACK<cr>', desc = '[H]ACK' },
   { '<leader>stw', ':TodoTelescope keywords=WARN<cr>', desc = '[W]ARN' },
+  { '<leader>stA', ':TodoTelescope keywords=AI<cr>', desc = '[A]I' },
+  { '<leader>stp', ':TodoTelescope keywords=PONYTAIL,ponytail<cr>', desc = '[P]onytail' },
   { '<leader>sp', ':Papis search<cr>', desc = '[P]apis' },
   -- Search and Replace
   { '<leader>r', group = '[R]eplace' },
