@@ -11,7 +11,7 @@ return {
           triggers = { 'BufWritePost' },
         },
         completion = {
-          enabled = false,
+          enabled = true,
         },
       },
       codeRunner = {
