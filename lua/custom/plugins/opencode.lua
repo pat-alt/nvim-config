@@ -25,8 +25,27 @@ return {
     },
   },
   config = function()
+    local opencode_cmd = 'opencode --port'
+    local snacks_terminal_opts = {
+      win = {
+        position = 'right',
+        enter = false,
+        on_win = function(self)
+          self.opts.wo.winfixwidth = false
+          vim.wo[self.win].winfixwidth = false
+        end,
+      },
+    }
+
     ---@type opencode.Opts
-    vim.g.opencode_opts = {}
+    vim.g.opencode_opts = {
+      server = {
+        start = function()
+          require('snacks.terminal').open(opencode_cmd, snacks_terminal_opts)
+        end,
+      },
+    }
+
     local curl_supports_fail_with_body = vim.system({ 'curl', '--fail-with-body', '--version' }):wait().code == 0
     local pixicurl = vim.fn.expand('~/.pixi/bin/pixicurl')
     if not curl_supports_fail_with_body and vim.fn.executable(pixicurl) == 1 and vim.fn.has('unix') == 1 then
@@ -40,19 +59,7 @@ return {
       vim.env.PATH = shim_dir .. ':' .. vim.env.PATH
     end
 
-    vim.o.autoread = true
-
-    local opencode_cmd = 'opencode --port'
-    local snacks_terminal_opts = {
-      win = {
-        position = 'right',
-        enter = false,
-        on_win = function(self)
-          self.opts.wo.winfixwidth = false
-          vim.wo[self.win].winfixwidth = false
-        end,
-      },
-    }
+    -- autoread is set by the plugin itself when events.reload is enabled (its default)
 
     vim.keymap.set({ 'n', 't' }, '<leader>ao', function()
       require('snacks.terminal').toggle(opencode_cmd, snacks_terminal_opts)
