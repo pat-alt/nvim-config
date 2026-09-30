@@ -32,15 +32,27 @@ return {
         vim.cmd 'normal! j'
       end, { desc = 'run line', silent = true })
       local function run_visual_range()
-        local start_line = vim.fn.line "'<"
-        local end_line = vim.fn.line "'>"
+        -- '< and '> are only committed once the selection ENDS, so during this
+        -- visual-mode mapping they are stale or unset (0). Read the live
+        -- selection instead: 'v' is its start, '.' the cursor at its end.
+        local start_line = vim.fn.line 'v'
+        local end_line = vim.fn.line '.'
         if start_line > end_line then
           start_line, end_line = end_line, start_line
         end
 
-        runner.run_range()
+        -- Outside quarto files otter has no code chunks, so runner.run_range()
+        -- errors with "No code chunks found". Send the selected lines straight
+        -- to the REPL via vim-slime's native range send instead.
+        if require('otter.keeper').rafts[vim.api.nvim_get_current_buf()] == nil then
+          vim.fn['slime#send_range'](start_line, end_line)
+        else
+          runner.run_range()
+        end
         vim.schedule_wrap(function()
-          vim.api.nvim_win_set_cursor(0, { end_line, 0 })
+          -- clamp: the buffer may have shrunk while the send ran
+          local last = math.min(end_line, vim.api.nvim_buf_line_count(0))
+          vim.api.nvim_win_set_cursor(0, { last, 0 })
         end)()
       end
 
@@ -66,9 +78,11 @@ return {
       -- Auto-detect target based on which multiplexer nvim runs in.
       -- $HERDR_PANE_ID is injected by herdr into every managed pane process;
       -- $TMUX is set by tmux. The first match wins.
+      -- Never default herdr's target_pane to $HERDR_PANE_ID: that is the pane
+      -- nvim itself runs in, so sends would type the code into nvim.
       if vim.env.HERDR_PANE_ID and vim.env.HERDR_PANE_ID ~= '' then
         vim.g.slime_target = 'herdr'
-        vim.g.slime_default_config = { target_pane = vim.env.HERDR_PANE_ID }
+        vim.g.slime_default_config = { target_pane = '' }
       elseif vim.env.TMUX and vim.env.TMUX ~= '' then
         vim.g.slime_target = 'tmux'
         vim.g.slime_default_config = {
@@ -88,7 +102,8 @@ return {
       local function apply_target(target)
         if target == 'herdr' then
           vim.g.slime_target = 'herdr'
-          vim.g.slime_default_config = { target_pane = vim.env.HERDR_PANE_ID or '' }
+          -- empty default: prompts for the real REPL pane on first send
+          vim.g.slime_default_config = { target_pane = '' }
         elseif target == 'tmux' then
           vim.g.slime_target = 'tmux'
           vim.g.slime_default_config = {

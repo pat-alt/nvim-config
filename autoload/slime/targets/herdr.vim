@@ -1,20 +1,17 @@
 " vim-slime target for herdr (https://herdr.dev/)
 "
 " Sends text to a herdr pane via the `herdr pane send-text` / `send-keys` CLI.
-" Herdr injects $HERDR_PANE_ID into managed pane processes, so when nvim runs
-" inside herdr the target pane auto-fills. Otherwise the user is prompted once
-" (e.g. "w1:p1") and vim-slime remembers it per-buffer.
+" The user is prompted once per buffer for the target pane (e.g. "w1:p1");
+" vim-slime remembers it in b:slime_config.
 "
 " Config keys (b:slime_config):
 "   target_pane   string   public pane id, e.g. "w1:p1"
 
 function! slime#targets#herdr#config() abort
   if !exists("b:slime_config")
-    let l:default_pane = ""
-    if exists("$HERDR_PANE_ID") && $HERDR_PANE_ID !=# ""
-      let l:default_pane = $HERDR_PANE_ID
-    endif
-    let b:slime_config = {"target_pane": l:default_pane}
+    " No default from $HERDR_PANE_ID: that is the pane nvim itself runs in,
+    " so defaulting to it types the code into nvim instead of the REPL.
+    let b:slime_config = {"target_pane": ""}
   endif
   let b:slime_config["target_pane"] = input("herdr target pane (e.g. w1:p1): ", b:slime_config["target_pane"])
 endfunction
