@@ -76,19 +76,21 @@ return {
       vim.g.slime_bracketed_paste = 1
 
       -- Auto-detect target based on which multiplexer nvim runs in.
-      -- $HERDR_PANE_ID is injected by herdr into every managed pane process;
-      -- $TMUX is set by tmux. The first match wins.
+      -- $TMUX is set by tmux for the processes it manages; $HERDR_PANE_ID is
+      -- injected by herdr into every managed pane process and is INHERITED by
+      -- nested multiplexers (e.g. tmux started from a herdr pane). So check
+      -- tmux first: it is the innermost multiplexer actually enclosing nvim.
       -- Never default herdr's target_pane to $HERDR_PANE_ID: that is the pane
       -- nvim itself runs in, so sends would type the code into nvim.
-      if vim.env.HERDR_PANE_ID and vim.env.HERDR_PANE_ID ~= '' then
-        vim.g.slime_target = 'herdr'
-        vim.g.slime_default_config = { target_pane = '' }
-      elseif vim.env.TMUX and vim.env.TMUX ~= '' then
+      if vim.env.TMUX and vim.env.TMUX ~= '' then
         vim.g.slime_target = 'tmux'
         vim.g.slime_default_config = {
-          socket_name = vim.api.nvim_eval 'get(split($TMUX, ","), 0)',
+          socket_name = vim.fn.split(vim.env.TMUX, ',')[1],
           target_pane = '{right}',
         }
+      elseif vim.env.HERDR_PANE_ID and vim.env.HERDR_PANE_ID ~= '' then
+        vim.g.slime_target = 'herdr'
+        vim.g.slime_default_config = { target_pane = '' }
       else
         -- No multiplexer detected; use :SlimeSwitchTarget to pick one.
         vim.g.slime_target = 'tmux'
@@ -100,16 +102,17 @@ return {
       --- Apply vim-slime globals for a given target.
       --- Used by :SlimeSwitchTarget and the init-time auto-detection.
       local function apply_target(target)
-        if target == 'herdr' then
+        if target == 'tmux' then
+          vim.g.slime_target = 'tmux'
+          vim.g.slime_default_config = {
+            -- fall back to tmux's default socket when nvim itself is not in tmux
+            socket_name = (vim.env.TMUX and vim.env.TMUX ~= '') and vim.fn.split(vim.env.TMUX, ',')[1] or 'default',
+            target_pane = '{right}',
+          }
+        elseif target == 'herdr' then
           vim.g.slime_target = 'herdr'
           -- empty default: prompts for the real REPL pane on first send
           vim.g.slime_default_config = { target_pane = '' }
-        elseif target == 'tmux' then
-          vim.g.slime_target = 'tmux'
-          vim.g.slime_default_config = {
-            socket_name = vim.api.nvim_eval 'get(split($TMUX, ","), 0)',
-            target_pane = '{right}',
-          }
         else
           return false
         end
