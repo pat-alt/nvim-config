@@ -41,6 +41,11 @@ return {
           start_line, end_line = end_line, start_line
         end
 
+        -- Leave visual mode now, synchronously ('x' executes immediately).
+        -- If visual mode is still active after the send, its exit resets the
+        -- cursor to the selection start, clobbering any cursor fix-up below.
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'x', false)
+
         -- Outside quarto files otter has no code chunks, so runner.run_range()
         -- errors with "No code chunks found". Send the selected lines straight
         -- to the REPL via vim-slime's native range send instead.
@@ -49,11 +54,11 @@ return {
         else
           runner.run_range()
         end
-        vim.schedule_wrap(function()
-          -- clamp: the buffer may have shrunk while the send ran
-          local last = math.min(end_line, vim.api.nvim_buf_line_count(0))
-          vim.api.nvim_win_set_cursor(0, { last, 0 })
-        end)()
+        -- Synchronous (not vim.schedule): a deferred set_cursor runs while
+        -- visual mode is still up and gets undone by its exit-cursor reset.
+        -- One line below the range, clamped to the buffer end.
+        local last = math.min(end_line + 1, vim.api.nvim_buf_line_count(0))
+        vim.api.nvim_win_set_cursor(0, { last, 0 })
       end
 
       vim.keymap.set('x', '<C-c>r', run_visual_range, { desc = 'run visual range', silent = true })
@@ -74,6 +79,12 @@ return {
     'jpalardy/vim-slime',
     init = function()
       vim.g.slime_bracketed_paste = 1
+
+      -- Disable slime's default mappings: its x-mode <C-c><C-c> (plugin/
+      -- slime.vim) would overwrite run_visual_range set in the quarto config
+      -- above, because slime's plugin script loads after quarto's config.
+      -- The n-mode defaults we care about are re-added in config below.
+      vim.g.slime_no_mappings = 1
 
       -- Auto-detect target based on which multiplexer nvim runs in.
       -- $TMUX is set by tmux for the processes it manages; $HERDR_PANE_ID is
@@ -98,6 +109,10 @@ return {
     end,
     config = function()
       vim.b.slime_cell_delimiter = '```'
+
+      -- Restore the slime defaults worth keeping (slime_no_mappings = 1 above).
+      vim.keymap.set('n', '<C-c><C-c>', '<Plug>SlimeParagraphSend', { remap = true, silent = true, desc = 'send paragraph to REPL' })
+      vim.keymap.set('n', '<C-c>v', '<Plug>SlimeConfig', { remap = true, silent = true, desc = 'slime config' })
 
       --- Apply vim-slime globals for a given target.
       --- Used by :SlimeSwitchTarget and the init-time auto-detection.
