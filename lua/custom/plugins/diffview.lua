@@ -85,7 +85,7 @@ return {
           vim.opt_local.wrap = true
           vim.opt_local.linebreak = true
           vim.opt_local.list = false
-          vim.keymap.set('n', '<leader>a', function()
+          vim.keymap.set('n', '<leader>gR', function()
             if not vim.bo.modifiable then
               return
             end
@@ -93,7 +93,7 @@ return {
             local comment = cs == '' and '# REVIEW: ' or cs:format(' REVIEW: ')
             vim.fn.append('.', comment)
             vim.cmd('normal! jA')
-          end, { buffer = true, desc = 'Add REVIEW comment' })
+          end, { buffer = true, desc = '[R]eview comment' })
         end,
         diff_buf_win_enter = function(_, winid)
           local ok, hl = pcall(require, 'todo-comments.highlight')
